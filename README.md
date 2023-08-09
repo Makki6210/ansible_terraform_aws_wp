@@ -26,3 +26,5 @@ ansible-playbook -i hosts.yml site.yml --tags=aws
 ansible-playbook -i hosts.yml site.yml
 ```
 4. http://XXX.XXX.XXX.XXX/wordpress にアクセスすると WordPress のホームが表示される
+
+![AWS構成図](img/architecture.png "AWS構成図")

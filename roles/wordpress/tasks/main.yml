@@ -1,0 +1,115 @@
+---
+- name: Set timezone to Asia/Tokyo
+  timezone:
+    name: Asia/Tokyo
+
+- name: Download wordpress archive file
+  get_url:
+    url: '{{ wp_url }}'
+    dest: '{{ install_path }}'
+    checksum: '{{ wp_md5 }}'
+
+- name: check wordpress archive file exist
+  stat:
+    path: '{{ install_path }}/{{ wp_archive_file }}'
+  register: check_wp
+
+- name: Unarchive wordpress file
+  unarchive:
+    src: '{{ install_path }}/{{ wp_archive_file }}'
+    dest: '{{ install_path }}'
+    remote_src: yes
+  when: check_wp.stat.exists == false
+
+- name: Download wp-cli
+  get_url:
+    url: '{{ wp_cli_url }}'
+    dest: '{{ install_path }}'
+    mode: '0555'
+
+- name: Create symbolic-link for wp-cli
+  file:
+    src: '{{ install_path }}/wp-cli.phar'
+    dest: /usr/local/bin/wp
+    state: link
+
+- name: Create symbolic-link for apache
+  file:
+    src: '{{ install_path }}/{{ wp_dir_name }}'
+    dest: '{{ httpd_path }}/{{ wp_dir_name }}'
+    state: link
+
+- name: Start services
+  service:
+    name: '{{ item.name }}'
+    enabled: '{{ item.enabled | default("yes") }}'
+    state: '{{ item.state | default("started") }}'
+  with_items:
+    - name: httpd
+    - name: mysqld
+
+- name: Create mysql-user for wordpress
+  mysql_user:
+    name: '{{ mysql_user.name }}'
+    password: '{{ mysql_user.password }}'
+    state: present
+
+- name: Create database for wordpress
+  mysql_db:
+    name: '{{ mysql_db.db_name }}'
+    state: present
+
+- name: Append-privs wordpress-user
+  mysql_user:
+    name: '{{ mysql_user.name }}'
+    append_privs: true
+    priv: '{{ mysql_db.db_name}}.*:ALL,GRANT'
+    state: present
+
+- name: Setup Wordpress Config
+  shell: |
+    /usr/local/bin/wp config create \
+    --dbname={{ mysql_db.db_name }} \
+    --dbuser={{ mysql_user.name }} \
+    --dbpass={{ mysql_user.password }} \
+    --path={{ install_path }}/{{ wp_dir_name }}
+  args:
+    creates: '{{ install_path }}/{{ wp_dir_name }}/wp-config.php'
+
+- name: Wordpress Install
+  shell: |
+    /usr/local/bin/wp core install \
+    --title={{ wp_info.title }} \
+    --admin_user={{ wp_info.username }} \
+    --admin_password={{ wp_info.password }} \
+    --url=http://{{ wp_public_ip }}/{{ wp_dir_name }} \
+    --path={{ install_path }}/{{ wp_dir_name }} \
+    --admin_email={{ wp_info.email }}
+  changed_when: false
+  # args:
+  #   creates: '{{ install_path }}/{{ wp_dir_name }}'
+
+- name: Wordpress master theme install 
+  shell: |
+    /usr/local/bin/wp theme install \
+    {{ wp_theme.master }} \
+    --path={{ install_path }}/{{ wp_dir_name }}
+  args:
+    creates: '{{ install_path }}/{{ wp_dir_name }}/wp-content/themes/cocoon-master'
+
+- name: Wordpress child theme install and activate
+  shell: |
+    /usr/local/bin/wp theme install \
+    {{ wp_theme.child }} \
+    --activate \
+    --path={{ install_path }}/{{ wp_dir_name }}
+  args:
+    creates: '{{ install_path }}/{{ wp_dir_name }}/wp-content/themes/cocoon-child-master'
+
+- name: Change file ownership for apache
+  file:
+    path: '{{ install_path }}/{{ wp_dir_name }}'
+    mode: '0755'
+    owner: apache
+    group: apache
+    recurse: yes

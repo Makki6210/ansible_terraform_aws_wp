@@ -1,0 +1,8 @@
+---
+dnf_packages:
+  - name: httpd.x86_64
+  - name: php.x86_64
+  - name: php-mysqlnd.x86_64
+  - name: php-mbstring.x86_64
+  - name: mysql-server.x86_64
+  - name: python3-PyMySQL.noarch

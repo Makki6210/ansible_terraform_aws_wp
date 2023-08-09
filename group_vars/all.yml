@@ -1,0 +1,3 @@
+---
+# terraform ロールを実行したあとに ec2 のグローバルIPアドレスを記載する
+wp_public_ip: <dummy>

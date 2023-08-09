@@ -1,0 +1,3 @@
+*.terraform*
+/roles/terraform/*tfstate*
+/roles/terraform/*tfvars

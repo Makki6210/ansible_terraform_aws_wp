@@ -1,0 +1,29 @@
+---
+wp_version: 6.2.2
+wp_url: 'https://ja.wordpress.org/wordpress-{{ wp_version }}-ja.tar.gz'
+wp_archive_file: 'wordpress-{{ wp_version }}-ja.tar.gz'
+wp_md5: 'md5:200a716a5416816da4979199f5aaa33c'
+
+wp_cli_url: https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+
+wp_dir_name: wordpress
+
+wp_info:
+  title: SAMPLE_BLOG
+  username: admin
+  password: p@ssw0rd
+  email: administrator@example.com
+
+wp_theme:
+  master: https://wp-cocoon.com/download/791/?tmstv=1691385254
+  child: https://wp-cocoon.com/download/726/?tmstv=1691385254
+
+install_path: /opt
+httpd_path: /var/www/html
+
+mysql_user:
+  name: wpadmin
+  password: wp@dm1n
+
+mysql_db:
+  db_name: wordpress
